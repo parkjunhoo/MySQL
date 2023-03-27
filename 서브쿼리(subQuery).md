@@ -11,6 +11,10 @@ WHERE [컬럼명] [연산자] (SELECT [컬럼명] FROM [테이블명] WHERE [조
 ```
 
 from절에 정의한 서브쿼리 = 인라인뷰
+select e.ename , e.empno , e.deptno , e.sal
+from emp e , (select deptno , avg(sal) avgsal from emp group by deptno) avgtable
+where e.deptno = avgtable.deptno && e.sal > avgtable.avgsal;
+
 
 <hr>
 
