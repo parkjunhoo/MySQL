@@ -1,14 +1,14 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=header&text=DDL&fontSize=90" />
 
 ## DDL Data Definition Language 데이터 정의어
-데이터베이스 객체를 정의하고 조작하는데 사용되는 명령어 집합 
+데이터베이스 객체를 정의하고 조작하는데 사용되는 명령어 집합 <br>
 
-CREATE: 테이블, 뷰, 인덱스 등 데이터베이스 객체를 생성합니다.
-ALTER: 이미 존재하는 테이블, 뷰, 인덱스 등 데이터베이스 객체를 수정합니다.
-DROP: 데이터베이스 객체를 삭제합니다.
-TRUNCATE: 테이블에서 모든 데이터를 삭제합니다.
-RENAME: 데이터베이스 객체의 이름을 변경합니다.
-COMMENT: 데이터베이스 객체에 대한 주석을 추가합니다.
+CREATE: 테이블, 뷰, 인덱스 등 데이터베이스 객체를 생성합니다.<br>
+ALTER: 이미 존재하는 테이블, 뷰, 인덱스 등 데이터베이스 객체를 수정합니다.<br>
+DROP: 데이터베이스 객체를 삭제합니다.<br>
+TRUNCATE: 테이블에서 모든 데이터를 삭제합니다.<br>
+RENAME: 데이터베이스 객체의 이름을 변경합니다.<br>
+COMMENT: 데이터베이스 객체에 대한 주석을 추가합니다.<br>
 
 ## CREATE
 테이블 , 데이터베이스 등 DB 객체를 생성하는 명령어
