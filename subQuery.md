@@ -9,6 +9,9 @@ WHERE [컬럼명] [연산자] (SELECT [컬럼명] FROM [테이블명] WHERE [조
 ```
 
 
+수업시간 연습문제 :
+3.각 부서(department_id)별로 최고 연봉(salary)를 받는 사원의 사번(employee_id), 성(last_name)과 연봉(salary)을 조회하시오. 단 조회결과는
+연봉의 내림차순으로 정렬되어 나타나야 합니다.
 ```sql
 select employee_id , last_name , salary , department_id
 from employees e
