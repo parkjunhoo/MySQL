@@ -1,6 +1,6 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=header&text=DDL&fontSize=90" />
 
-## DDL Data Definition Language 데이터 조작어
+## DDL Data Definition Language 데이터 정의어
 데이터베이스 객체를 정의하고 조작하는데 사용되는 명령어 집합 
 
 CREATE: 테이블, 뷰, 인덱스 등 데이터베이스 객체를 생성합니다.
