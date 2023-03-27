@@ -30,7 +30,9 @@ order by salary desc;
 ```sql
 select d.department_name , avg(e.salary)
 from employees e , departments d
-where salary <= (select avg(salary) from employees where department_id = 30);
+where e.department_id = d.department_id
+group by e.department_id
+having avg(e.salary) <= (select avg(salary) from employees where department_id = 30);
 ```
 
 각 부서별 평균 급여보다 급여가 높은 사원의 정보 출력
