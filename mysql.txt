@@ -1,0 +1,1099 @@
+0. 데이터베이스 개요
+   1) 용어정리
+       - 데이터베이스 
+          기업이나 조직에서 필요한 데이터를 저장해 놓은 것(데이터의 집합)
+       - DBMS (Database Management System)
+          데이터를 관리하는 시스템, 데이터의 유지보수나 보안을 유지
+          소프트웨어
+          DBMS를 이용해서 데이터를 입력, 수정, 삭제, 조회하는 일들을 처리할 수 있다.(SQL문)
+          종류로는 계층적데이터베이스, 네트워크데이터베이스,관계형데이터베이스(오라클, mysql, ...)
+      - DBA(Database Administrator)
+        데이터를 관리하는 자
+        보안
+        데이터설계, 인덱싱, 튜닝작업,데이터백업
+      
+   2) DBMS장점
+      - 무결한 데이터를 유지
+      - 데이터의 일관성을 유지
+      - 데이터의 공유
+      - 중복을 최소화할 수 있다.(관계형데이터베이스장점)   
+  
+   3) SQL(Structured query language)문
+      - 데이터조회, 수정, 삭제 , 입력에 사용되는 언어
+      DML(데이터조작어) : insert, update,delete
+      DDL(데이터정의어) : create table, alter table, drop table...
+      DCL(데이터제어어) : grant
+      TCL(트랜잭션처리어) : commit, rollback
+      Query : 데이터조회
+
+1. mysql명령 및 관리자계정에서 작업하기
+   1) 접속
+       mysql -u root -p 데이터베이스명
+       => root계정으로 접속
+       => -p만 쓰면 기본 데이터베이스로 접속
+
+       mysql -u 계정 -p패스워드 데이터베이스명
+       => 계정으로 접속
+      
+2. 사용자관리
+   1) 사용자조회
+      => 관리자계정으로 접속해서 사용
+     
+      mysql -u root -p1234 mysql
+      => root/1234접속
+           -----  -----
+            계정  패스워드
+           mysql데이터베이스 접속하기
+
+   2) 사용자생성
+       =>  create명령문 이용하기
+       create user 사용자계정@호스트명 identified by 패스워드
+                                        -----------
+                                         localhost, ip, %
+                                          접근을 제한할 수 있다.
+
+      ex) mydb계정만들기(패스워드 1234)
+           내부에서만 접근을 허용하는 사용자
+           create user mydb@localhost identified by 1234
+           
+           192.168의 대역의 ip만 허용하는 사용자             
+           create user 'mydb3'@'192.168.%' identified by '1234'
+     
+           외부에서 모든 접근을 허용하는 사용자
+           create user 'mydb4'@'%' identified by '1234'
+           
+           10.10.0.201의 ip만 접근을 허용하는 사용자
+           create user 'mydb5'@'10.10.0.201' identified by '1234'
+
+    2) 사용자 삭제
+        => drop user명령문을 이용
+             drop user 계정명@호스트
+
+       ex) test계정의 삭제
+            drop user test@localhost
+
+3. 권한
+    grant 권한lsit on 데이터베이스.테이블 to 계정;
+    1) 현재 계정의 권한을 확인
+        ① show grants for 계정
+            ex) mydb@localhost의 권한을 확인하고 싶은 경우
+                 show grants for mydb@localhost
+
+        ② 현재 접속 중인 사용자의 권한을 확인
+            show grants for current_user
+
+
+    2) 모든 권한 부여
+        mydb@localhost계정에게 모든 데이터베이스의 모든 테이블들에서
+        모든작업을 할 수 있도록 권한을 부여
+        grant all privileges on *.* to mydb@localhost 
+                ----------------
+                  모든권한
+    3) 권한의 제한 
+        지정한 데이터베이스의 모든 테이블에 대해서만 권한을 제한
+        grant 권한명1,권한명2.... on  데이터베이스명.* to mydb@localhost 
+        
+        지정한 데이터베이스의 명시한 테이블에 대해서만 권한을 제한
+        grant 권한명1,권한명2.... on  데이터베이스명.테이블명 to mydb@localhost 
+
+        ex)
+         mydb사용자에게  특정데이터베이스의 테이블에 대해서 select와 update기능만 사용하도록
+         제한
+         특히 update할 수 있는 컬럼을 지정함 - 컬럼1과 컬럼2에 대해서만 업데이트 처리를할 수 있다.
+         grant select,update(컬럼1,컬럼2) on 데이터베이스명.테이블명 to mydb@localhost 
+
+
+    [시나리오]
+     1. mydb - 모든권한을 부여
+     2. sample데이터베이스 만들기
+     3. emp테이블을 생성
+        dept테이블을 생성
+     4. test계정을 만들고 emp테이블에 select명령문을 실행할 수 있는 권한만 부여
+     5. test계정의 권한이 제한되는지 확인
+     6. 다시 작업 권한을 부여하고 테스트하기
+         => root계정으로 접속해서 test계정에 insert권한을 지정
+              접근이 가능한지 확인하기(sample데이터베이스의 emp테이블에 대해서만)
+ 
+
+4. 데이터베이스
+   => mysql에서 mariadb을 사용하는 경우 제일 처음 해야 하는 작업이 
+        데이터베이스를 생성하는 작업
+        데이터베이스는 작업 공간으로 생각
+   => 프로젝트당 한 개의 데이터베이스를 사용하는 것이 일반적
+   => 다른 데이터베이스에 있는 테이블을 같이 사용할 수 없다.
+   1) 생성된 데이터베이스 목록확인하기
+       show databases
+   2) 현재 접속 중인 데이터베이스 확인
+       select database()
+       => 데이터베이스를 지정하지 않고 접속하면 어떤 데이터베이스에도
+            접속되지 않은 상태
+       => NULL상태
+   3) 데이터베이스를 접속하기
+       use 데이터베이스명
+   4) 데이터베이스 생성
+      create database 데이터베이스명
+   5) 데이터베이스 삭제
+       drop database 삭제할데이터베이스명
+ 
+   [미션1]
+    root계정으로 접속하고 test2데이터베이스를 생성하기
+    - test2데이터베이스에 접속한 후 내부의 테이블 목록을 확인하기
+    - 현재 상태확인
+    - 현재 접속 중인 데이터베이스를 확인
+    결과 캡쳐 후 메일전송하기
+
+5. 테이블관리
+    1) 데이터베이스에 접속하면 테이블 목록을 확인
+        show tables
+
+    2) 테이블생성
+        create table 테이블명(
+            컬럼명1 컬럼타입(사이즈),
+            컬럼명2 컬럼타입(사이즈),
+            컬럼명3 컬럼타입(사이즈), .........
+          )
+
+6. DML
+    1) insert
+        => 테이블에 데이터를 삽입
+        테이블의 전체 컬럼에 대해서 값을 저장할 때 사용하는 명령문
+        테이블의 전체 컬럼의 갯수만큼 값을 정의해야 한다. 
+        insert into 테이블명 values(값1,값2,값3....)
+
+     
+    2) update
+    3) delete
+
+7. 기본쿼리
+    - sql문은 대소문자를 구분하지 않는다.
+    - sql명령문의 끝에는  ;을 추가해야 한다.
+    - select명령문에서 select절 뒤에 *을 추가하면 모든 컬럼을 조회하겠다는 의미
+   
+    [테이블 spec확인]
+    desc 테이블명
+
+    1) select 문 기본
+       [구문]
+       select 컬럼명1,컬럼명2....
+       from 테이블명1, 테이블명2....
+  
+       - 컬럼과 컬럼을 구분하기 위해 ,(콤마)를 이용해서 구분
+       select deptno, empno, ename,sal
+       from emp;
+
+       - 컬럼에 별칭(alias)을 사용할 수 있다. 별칭을 사용하면 컬럼명 대신에 별칭이
+         컬럼명 처럼 표시된다.
+         select 컬럼명 as alias
+         from 테이블명
+ 
+         select 컬럼명 alias
+         from 테이블
+
+       - 함수나 연산식( 사칙연산)을 컬럼에 적용할 수 있다.
+        select ename,sal,comm, sal*12
+        from emp;
+
+       - alias에 특수문자나 공백을 포함하고 싶은 경우 ""(큰따옴표)로 표시
+       - null에 대한 처리
+         * null은 컬럼에 값이 없는 것
+         * null은 연산을 해도 결과가 나오지 않는다.(연산결과도 null)  
+
+       - distinct를 이용하면 중복을 제거
+        ----------
+          컬럼 1개에 대해서 중복을 제거할 수 도 있지만
+          값이 동일한 레코드를 제거하기 위한 목적으로도 사용
+
+   2) 조건을 적용해서 조회하기
+       [구문]
+       select 컬럼명1,컬럼명2....
+       from 테이블명1, 테이블명2....
+       where 조건
+                ------
+
+       ① 조건
+           - true나 false를 리턴할 수 있는 식
+           - 컬럼명 연산자 비교할값
+                     --------
+                       비교연산자(true나 false를 리턴할 수 있는 연산자)
+                        >, >=, <,<=, =,  <>,!=
+           - 문자열이나 날짜데이터를 표현하는 경우 " "  이나 ' '로 리터럴을 표현
+     
+       ② 조건이 여러 개인 경우
+           - and조건
+             and => 모든 조건이 true
+                  
+          [미션]
+          sal가 2000이상이고 hiredate가 81/6/1이전에 입사한 사원출력하기
+          select *
+          from emp
+          where sal>=2000 and
+                    hiredate < '81/6/1'
+
+          [미션]
+          sal 1000에서 2000사이인 직원리스트 조회하기 
+          select *
+          from emp
+          where sal>=1000 and sal<=2000
+
+          - or조건
+            or => 조건 중 한 개가 true
+         [미션]
+           sal가 1250이거나,2975이거나,3000인 조건을 만족하는 사원을 조회    
+       ③ in 연산자
+          - or연산과 동일하게 작업
+          - 동일한 컬럼에 대해서 비교하는경우 사용
+
+          where 컬럼 in (값1,값2,값3....)
+
+       ④ not 
+          - 부정연산자
+       ⑤ null
+           - null데이터를 조회하는 경우 
+              is null
+           - null이 아닌 데이터를 조회하는 경우
+             is not null
+       ⑥ like
+           - 와일드카드를 해석해서 비교
+           - 정확하게 일치하지 않아도 비교가 가능
+           % : 모든 문자열
+           _ : 한글자
+
+    3) 정렬
+       [구문]
+       select 컬럼명1,컬럼명2....
+       from 테이블명1, 테이블명2....
+       where 조건
+       order by 정렬할컬럼명1 정렬기준
+
+      ① 오름차순 (asc)
+          - 정렬기준을 생략하면 기본값이 오름차순
+          - 수치데이터인 경우 작은값부터 큰값순서로 정렬
+             1,2,3,4.......9
+
+          - 문자데이터인 경우 정렬은 같은 문자열끼리 모으겠다는 의미
+            ㄱ, ㄴ, ㄷ ....................ㅎ
+            A, B, C ........................ Z
+
+      ② 내림차순(desc)
+          - 큰값에서 작은값 순서로 정렬
+            9, 8 ........1
+            ㅎ ...........ㄱ
+            Z ............A
+
+      ③ 정렬기준은 여러 개를 사용할 수 있다.
+
+8. group by
+   -  그룹별 통계값을 계산하고 싶은 경우 사용
+   -  여러 레코드의 데이터를 그룹으로 묶어서 처리하는 방식
+   -  통계작업을 위해서 사용
+   -  그룹함수를 활용
+      ----------
+       여러 레코드를 묶어서 처리하는 함수 즉, 그룹당 하나의 결과를 리턴하는 함수
+
+    [형식]
+     select 컬럼명1,컬럼명2....
+     from 테이블명1, 테이블명2....
+     where 조건
+     group by 컬럼명(그룹화 하고 싶은 기준이 되는 컬럼)
+     having 조건(그룹화된 데이터에 적용할 조건)
+     order by 정렬할컬럼명1 정렬기준  
+
+    1) 그룹함수(통계,집계함수)
+        - count(컬럼명) : 컬럼의 갯수를 구함
+                                count할 컬럼은 공백이나 중복이 있으면 제대로된 결과를 
+                                보기 어려우므로 보통 pk를 지정한다.
+        - max(컬럼명) : 컬럼 안에서 최대값을 구함
+        - min(컬럼명) : 컬럼 안에서 최소값을 구함
+        - sum(컬럼명) : 컬럼의 모든 합을 구함
+        - avg(컬럼명) : 컬럼의 평균 값을 구함
+       
+        - where절에 group함수를 사용할 수 없다.
+
+   2) group by
+      - select절에는 그룹화할 컬럼 , 집계함수를 정의
+      - goup by 하는 경우 select절에는 group으로 정의한 컬럼과 집계함수 이외의 다른 컬럼은 사용하지 않는다.
+                                                                                                            ------------
+                                                                                                              단일행컬럼
+      - group 함수는 여러 개 정의할 수 있다.
+      - 조건을 확인해서 group by를 하기 전에 처리해야 하는 조건이 
+        있으면 where절에 추가한다.
+      - group by한 후 조건을 적용해야 하는 경우 having절에 추가한다.
+      - group by나 select절에 함수의 결과를 정의할 수 있다.
+      [미션]
+      직업별 인원수와 평균sal을 출력하기
+	select job, count(empno),avg(sal)
+	from emp
+	group by job;	
+
+      [미션]
+      직업별 인원수와 평균sal을 출력하기 
+      단, job이 PRESIDENT는 제외하고 작업하기
+          인원수가 3명 이상인 결과만 출력하세요
+ 	select job, count(empno),avg(sal)
+	from emp
+	where job<>'PRESIDENT'
+	group by job
+	having count(empno) >=3;
+      [미션]
+     매니저가 관리하는 직원의 인원수를 출력하세요.
+     단, mgr이 널인 사원은 제외
+     관리직원이 1명인 관리자 정보는 제외하고 출력하세요
+	select mgr, count(empno)
+	from emp
+	where mgr is not null
+	group by mgr
+	having count(empno) >1;
+   
+   [미션1]
+    년도별 입사자 수 구하기
+   select date_format(hiredate,'%Y') 입사년도 , count(empno)
+   from emp
+   group by 입사년도
+   order by 입사년도;
+
+   [미션2]
+    월별 입사자수 구하기
+    단,sal이 5000이상인 사원은 제외하고 입사자수가 1명인 월은
+    제외하기
+   select  date_format(hiredate,'%m') 월 ,count(empno)
+   from emp
+   where sal<5000
+    group by 월
+    having count(empno) >1
+   order by 월 ;
+
+
+   [미션3]
+    부서별로 최대급여, 최소급여를 출력하세요
+    job이 PRESIDENT인 데이터는 제외하고 최대급여가 3000이상인
+    부서만 출력하세요.부서별로 오름차순 정렬하기
+	select deptno, max(sal) 최대급여 ,min(sal) 최소급여
+	from emp
+	where job <> 'PRESIDENT'
+	group by deptno
+	having max(sal)>=3000
+	order by deptno asc;
+    => 제출하기
+
+select  date_format(hire_date,'%m') 월 ,count(employee_id)
+from employees
+group by 월
+order by 월
+9. 함수
+   1) 형변환
+       cast(변환할 컬럼 or 값 as 타입)
+      => 데이터의 타입이 변환
+       convert(변환할 컬럼 or 값 , 타입)
+
+   2) 제어흐름
+      ① if함수
+          => 조건에 따라 값을 다르게 처리하기 위해 필요한 함수
+          if(조건,조건이 만족하면 출력할 값,조건이 만족하지 않으면 출력할 값)
+          select if(job='PRESIDENT','ok','fail') from emp;
+                     -------------------- -----  ----
+                        조건                  true  false
+      ② ifnull
+          => 컬럼의 값을 평가해서 null인경우와 null아닌 경우 값을 다르게 출력하고 싶은 경우 사용
+          ifnull(null이 아닌 경우 출력될 값, null이면 출력될 값)
+                  -----------------------------
+                      평가도 하고 출력도 할 값
+                           : 컬럼
+        [미션]
+        comm이 널이면 1000을 출력, 널이 아니면 comm값을 그대로 출력
+        select empno,sal, ifnull(comm,1000) from emp;
+
+        [미션1]
+	select empno , sal,comm , sal*12+comm 연봉
+	from emp;
+             이 결과에서 null대신 comm이 널인 경우 comm대신 1000이 더해지도록 작업하기
+        
+         select empno , sal,comm , ifnull(sal*12+comm , sal*12 + 1000) 연봉
+         from emp;
+
+       [미션2]
+          select mgr, count(empno)
+          from emp
+          group by mgr;
+          관리자별로 관리인원수를 출력
+          단, 관리자가 없는 경우 '사장'으로 출력하기
+	select ifnull(mgr,'사장'), count(empno)
+	from emp
+	group by mgr;
+       
+       [미션3]
+        rollup을 이용해서 소계와 총계를 출력하는 경우
+        총계 부분에 null대신 '총합계'로 출력하기
+ 	select job,sum(sal)
+	from emp
+ 	group by job
+ 	with rollup;
+       => 메일로 제출하기
+    3) 문자열함수
+        => 문자열 조작과 관련된 함수
+           ① ascii
+               =>문자를 ascii로 변환
+               ascii(문자 or 문자가 저장된 컬럼)
+
+           ② char
+               => ascii를 문자로 변환
+               char(ascii값 or ascii가 저장된 컬럼)
+              select ascii('A'), char(65),length('test');
+           ③ concat
+               => 문자열을 연결해서 출력
+               concat(문자열1,컬럼,문자열2......)
+              
+               length
+               => 문자열의 길이를 반환
+               length(문자열 or 컬럼) 
+
+           ④ elt
+               elt(숫자, 문자열1, 문자열2,문자열3......)
+               => 숫자번째 문자열을 반환
+               ex)
+               select elt(1,'test','java','mysql','jdbc');
+               1번 문자열에 해당하는 "test"를 반환 해당 순서의 문자열이 없는 경우 NULL반환
+
+           ⑤ field
+               field(찾을문자열,문자열1,문자열2,문자열3.....)
+               => 찾을문자열과 정확하게 일치하는 문자열을 찾아서 index 를 리턴
+               => 일치하는 문자열이 없는 경우 0을 리턴
+               select field('test', 'testtest','testjava','test1');
+
+           ⑥ find_in_set
+                find_in_set(찾을문자열,"문자열1,문자열2,문자열3.....")
+                => 찾을문자열과 정확하게 일치하는 문자열을 찾아서 index 를 리턴
+                => , 로 구분된 문자열 안에서 찾는다.
+                => 공백이 있으면 안된다.
+               find_in_set('test', 'testtest,testjava,test1');
+           ⑦ instr
+               => 문자열에서 지정한 문자가 위치하는 index를 리턴
+               => 왼쪽에서 처음 만나는 문자의 index를 리턴
+
+              instr(전체문자열,찾을문자)
+              ex)
+               instr('java programming','a')
+
+           ⑧ format
+               => 숫자에 천 단위로 ,를 삽입하기 위해서 사용하는 함수
+                    소숫점의 자리수도 정의할 수 있다.
+
+           ⑨ upper,lower
+               => 문자열의 대소문자를 변경하기 위해서 
+
+           ⑩ lpad,rpad
+               => 전체 문자열의 빈 공간을 지정한 특수문자로 채우는 함수
+                lpad('원본문자열' or 컬럼,전체자리수,채울문자)
+               lpad('test',10,'*')
+      
+           ⑪ trim,ltrim,rtrim
+                => 지정한 문자열이나 컬럼에서 공백이나 문자를 지우기 위해 사용
+                => ltrim은 왼쪽에서 지운다.
+                => rtrim은 오른쪽에서 지운다.
+                => 문자를 주지 않으면 공백을 지운다.
+                => 문자열 중간의 문자는 지우지 않는다.
+                => trim은 양 끝에서 지운다. 
+                ltrim(문자열)
+                rtrim(문자열)
+                trim(문자열)
+
+                특정문자를 지우고 싶은 경우
+                trim(both '지우고싶은문자' from '전체문자열')
+                      -------
+                       양끝
+                    leading(ltrim역할), trailing (rtrim역할)
+                
+
+           ⑫ repeat
+               => 특정문자열을 반복
+               repeat(문자 or 컬럼,반복횟수)
+               select repeat('java',10);
+           ⑬ replace
+               => 문자열 내부의 문자를 변경
+               replace(문자열, 기존문자, 변경할 문자)
+           
+           ⑭ substring
+               => 지정한 index번째에서 문자열을 추출
+                substring(문자열 or 컬럼, 시작 index, 추출할 문자열의 길이)
+                substring('test' , 2,2)
+     
+      select repeat('java',10);      
+      select reverse('java');
+      select replace('java programming', 'a','A');
+      select substring('java programming',2,3);
+      select abs(10), abs(-10) ;
+      select round(10.5) , ceiling(10.3), floor(10.9);
+      select sysdate(), curtime(), now(), curdate();
+      select year(sysdate()),month(sysdate()), day(sysdate()),
+                                        hour(curtime()), minute(curtime()),second(curtime());
+
+
+
+     ①②③④⑤⑥⑦⑧⑨⑩
+    4) 수학삼각함수
+        ① abs
+            => 절대값
+
+        ② round
+            => 반올림
+            round(반올림할 값 or 값이 저장된 컬럼, 반올림할 자릿수)
+
+        ③ ceiling
+            => 올림
+        ④ floor
+            => 내림
+ 
+        ⑤ mod
+            => 나머지구하기
+
+    5) 날짜시간함수
+        select sysdate(), curtime(), now(), curdate();
+       select year(sysdate()),month(sysdate()), day(sysdate()),
+                                        hour(curtime()), minute(curtime()),second(curtime());
+        ① sysdate() 
+        ② adddate 
+            => 날짜데이터에 더하기
+            => 지정한 날짜에서 숫자만큼 더한 날짜를 계산해서 리턴
+             adddate(날짜데이터, 숫자)
+        ③ subdate
+            => 날짜데이터에 빼기
+            => 지정한 날짜에서 숫자만큼 뺀 날짜를 계산해서 리턴
+             subdate(날짜데이터, 숫자)
+        ④ datediff
+            => 두 날짜 사이의 간격을 day리턴
+            => 날짜1데이터가 나중날짜를 정의
+           datediff(날짜1,날짜2)
+        ⑤ dayofweek
+            => 요일번호를 리턴
+            => 일요일:1,.....토요일:7
+            dayofweek(날짜데이터)
+
+        ⑥ last_day
+            => 지정한 날짜가 해당하는 월의 마지막날을 리턴
+            last_day(날짜데이터)
+            select last_day('2023-11-22');
+        ⑦ quarter
+            => 지정한 날짜의 분기를 리턴
+            quarter(날짜데이터)
+            select quarter('2023-8-18');
+
+10. 조인
+     - 관계형 데이터베이스에서 원하는 결과를 여러 테이블로 부터 가져오고 싶은 경우 사용 즉, 여러 테이블을 이용해서 
+       원하는 결과를 만들어내는 작업을 조인이라고 한다.
+     - 기본키테이블과 외래키테이블을 이용해서 조인해야 한다.
+       --------------     ----------------
+         어떤 데이터를        기본키테이블에 정리된 컬럼의 값을 참조해서 사용하는 테이블
+         중복없이 정리
+         해놓은테이블
+
+        ex) 
+           기본키테이블	외래키테이블
+             부서테이블		인사테이블
+             카테고리테이블	상품테이블
+             회원테이블		게시판테이블
+             주문일반		주문상품
+             고객		주문일반
+             상품		주문상품
+             게시판테이블	댓글테이블
+                 ...................
+                 ...................
+
+     1) 조인방법
+         - 반드시 연관성 있는 컬럼이 있는 테이블끼리 조인해야 한다.
+           (기본키테이블과   외래키테이블만 조인할 수 있다.)
+         - from절에 사용할 모든 테이블을 정의한다.
+         - select절에 컬럼을 정의할때 from절에 정의한 테이블들에서 중복되게 
+           사용하는 컬럼이면 반드시 어떤 테이블의 컬럼인지 명시해야 한다.
+           select 테이블명.컬럼명,테이블명.컬럼명....
+
+         - 조인을 하기위해서 조인 조건을 정의해야 한다.
+                                     ------------
+                                다른테이블에 정의된 값을 가져오는 경우
+                               어떤 컬럼의 값을 기준으로 비교해서 가져와야 하는지를 정의
+
+         - 조인의 조건은 where절에 정의
+            where 외래키테이블.외래키컬럼  = 기본키테이블.기본키컬럼 
+            : 명시하는 테이블비교값의 순서는 중요하지 않다.
+            : 외래키와 일치하는 값을 기본키테이블에서 찾아서 비교하고 일치하는 경우
+              원하는 컬럼의 값을 기본키테이블에서 가져온다.
+         - 테이블명에 alias를 정의하고 사용할 수 있다.
+         - 조인조건과 다른 조건이 있는 경우 조인조건은 무조건 and조건으로 명시한다.
+         - 두 개이상의 테이블을 조인하는 경우 각각의 관계있는 테이블끼리의 조인조건을
+            모두 and조건으로 명시해야 한다.
+           ex) 
+           emp, dpet, locations테이블을 조인해서 각 직원이 근무하는 지역정보까지
+           출력하고 싶다면 모든 테이블을 조인해야 한다.
+           즉, emp의 deptno 만 가지고 locations테이블의 위치정보를 찾을 수 있도록 
+           각가의 연관있는 테이블끼리 조인조건을 명시해야 한다.
+           그래야 비교하면서 원하는 정보까지 찾아갈 수 있다.
+    
+         - select절에 표시하지 않고 조건으로만 사용한다고 하더라도 일단 사용하면
+           조인조건은 무조건 명시해야 한다.
+           직접적으로 쓰지 않더라도 필요하면 모두 조인조건 명시
+
+         [미션]
+          부서별인원수를 출력하기(단, 부서명으로 출력하세요)
+
+          부서명 인원수
+    2) 조인의 종류
+        ① inner join
+            => 두 개 이상의 테이블에서 컬럼이 정확하게 일치하는 정보만 출력
+            [문법을 간소화시킨 join]
+            select 테이블1alias.컬럼, 테이블2alias.컬럼명........
+            from 테이블1 alias,테이블2 alias
+            where 조인조건
+
+
+            [표준방법]
+            select 컬럼list
+            from 기준이되는테이블 
+                    inner join 기준테이블에서 참조할 테이블
+                    on 조인조건
+            where 조인조건을 뺀 나머지 조건
+	
+	elect e.ename , e.empno,d.dname
+	from emp e inner join dept d
+	on e.deptno = d.deptno
+        
+             [미션]
+             부서별 인원수 inner  join으로 작업하기
+	select d.dname, count(e.empno)
+	from emp e
+     		join dept d on e.deptno = d.deptno
+	group by d.dname;
+
+            [미션]
+             도시별 인원수를 inner join으로 작업
+             emp,dept,locations조인
+              <<방법1>>              
+              select l.city, count(e.empno)
+	from emp e
+     		join dept d
+     		join locations l
+     		on e.deptno = d.deptno and d.loc_code = l.loc_code
+	group by l.city;
+
+	<<방법2>>
+	select l.city, count(e.empno)
+	from emp e
+     		join dept d on e.deptno = d.deptno
+     		join locations l on d.loc_code = l.loc_code
+	group by l.city;	
+
+        ② outer join
+            => 조건을 만족하지 않아도 모두 출력할 수 있도록 제공되는 조인
+            [left outer join]
+              :  기준이 되는 왼쪽 테이블(첫 번째 테이블)은  두 번째 테이블과 연결되는 컬럼이
+                 없어도 모두 데이터를 조회하는 조인방식
+                 select 컬럼list
+                 from 테이블
+                         left outer join 테이블
+                         on 조인조건
+                  	select *
+		from emp e
+     			left outer join dept d
+     			on e.deptno = d.deptno
+                 [미션]
+                  부서별 인원수를 출력하기 단, 부서가 없는 경우 신입사원으로 출력하세요.
+                  부서명      인원수
+                  RESEARCH   5
+                      ......
+                   신입사원     2
+                   	select ifnull(d.dname,'신입사원'), count(e.empno)
+ 		from emp e
+      			left outer join dept d
+      			on e.deptno = d.deptno
+ 		group by d.dname;
+
+
+            [right outer join]
+             두 번째 테이블의 데이터는 모두 출력하고 첫 번째 테이블의 데이터는 일치하는
+             데이터만 조회하는 조인방식
+	select 컬럼list
+              from 테이블
+                         right outer join 테이블
+                         on 조인조건
+                
+   
+             	select *
+	from emp e
+     		left outer join dept d
+     		on e.deptno = d.deptno
+
+              [미션]
+              부서별인원수 출력하기 단, 인원수가 없는 부서도 모두 출력하세요
+	select d.dname, count(e.empno)
+ 	from emp e
+      		right outer join dept d
+      		on e.deptno = d.deptno
+ 	group by d.dname;
+
+
+            [full outer join]
+            두 테이블의 모든 데이터를 조회할 수 있는 조인
+             두 테이블의 합집합을 표현해야 한다. union
+
+             left outer join
+ 
+             union
+   
+             right outer join
+ 
+            [실습]
+	select ifnull(d.dname,'신입사원'), count(e.empno)
+ 	from emp e
+      		left outer join dept d
+      		on e.deptno = d.deptno
+ 	group by d.dname
+	union
+	select d.dname, count(e.empno)
+ 	from emp e
+      		right outer join dept d
+      		on e.deptno = d.deptno
+ 	group by d.dname;
+
+      ③ self조인
+          => 자기 자신의 테이블과 조인
+          사원번호, 사원명, 관리자번호, 관리자명
+
+          동일한 테이블이지만 다른 의미를 갖는 테이블로 정의하여 사용할 수 있다.
+          이때 자신의 테이블을 가지고 조인한다고 하더라도 두 테이블이 연결될 수 있는
+          키는 반드시 있어야 한다.
+
+          emp테이블을 e로 alias를 주게 되면 사원테이블이 되고 m으로  alias를 주게 되면
+          관리자테이블이 된다. empno는 사원테이블인 경우 사원번호가 되지만
+          관리자테이블인 경우 특성에 맞게 관리자번호가 된다.
+
+         	select e.empno,e.ename,m.empno,m.ename
+	from emp e, emp m
+	where e.mgr = m.empno;
+
+              => inner join
+              select e.empno,e.ename,m.empno,m.ename
+	from emp e
+		inner join emp m
+		on e.mgr = m.empno;
+
+
+          [미션] - self조인과 outer조인이 같이 사용
+           관리자별로 관리하는 직원의 수를 조회하세요
+           단, 관리자가 없는 경우 "관리자없음"으로 표시
+           
+	select ifnull(m.ename,'관리자없음') , count(e.empno)
+	from emp e
+    		 left outer join emp m
+     		on e.mgr = m.empno
+	group by m.ename;
+
+
+11. 서브쿼리
+     - 쿼리 안에 포함된 쿼리를 의미
+     - 전체 급여의 평균보다  높은 사원 목록을 조회하기
+     - select, from, where, having 에서 서브쿼리를 사용할 수 있다.
+     - 서브쿼리는 ( ) 를 삽입해서 정의한다.
+     - 서브쿼리도 일반 쿼리 처럼 group by, join모두 사용가능
+     - 바깥쪽 쿼리를 메인쿼리라 하고 메인쿼리에 삽입된 쿼리를 서브쿼리라 한다.
+     - 서브쿼리는 메인쿼리 실행전에 한 번만 실행된다.
+     - where절에 서브쿼리를 삽입하는 경우 비교조건의 오른쪽에 쿼리를 추가한다.
+     - 보통은 1행1열의 결과가 나오는 서브쿼리를 사용하는 것이 기본
+
+     [구문]
+      select 컬럼list
+      from 테이블명
+      where 컬럼명 연산자 ( select 컬럼명
+                                      from 테이블
+                                      where 조건
+                                      group by
+                                         ....... )
+
+      1) 단일행서브쿼리
+          - 서브쿼리의 실행결과가 1행 1열인 쿼리
+          -  =, >=, <= , !=, <> 등과 같은 비교연산자를 이용해서 작업
+
+        [미션1] 
+         10번부서의 평균급여보다 급여가 많은 사원의 목록을 조회
+
+        [미션2]
+         SMITH와 같은 부서에 근무하는 사원의 목록을 조회
+     
+      2) 다중행서브쿼리
+          - 서브쿼리의 결과가 다중 행인 경우
+          - 비교연산자를 사용할 수 없다.(비교연산자를 사용한다고 하더라도 any 나 all과 함께 사용)
+          - in, any , all
+          ① in
+              괄호안에 값들과 정확하게 일치하는 값들에 대해서 결과가 반영
+          ② any
+              ====> 결과값의 해당하는 어떤 값에 대해서 하나만 만족하면
+                          모두 조회(결과값에 대해서 조건이 or조건)
+
+              컬럼 < any(값1,값2,값3...)
+               sal<any(800,1250,1500)
+                          --------------------
+                              임의의 값이 조회되는 서브쿼리
+
+               => 최대값보다 작은 값을 조회하겠다는 의미
+
+
+              컬럼 > any(값1,값2,값3...)
+   	 sal>any(800,1250,1500)
+               => 최소값보다 큰 값을 조회
+
+
+          ③ all
+               ====> 결과값의 해당하는 어떤 값들에 대해서 모두 만족하면
+                          조회(결과값에 대해서 조건이 and조건)
+              컬럼 < all(값1,값2,값3...)
+               sal<all(800,1250,1500)
+                          --------------------
+                              임의의 값이 조회되는 서브쿼리
+              => 최소값보다 작은 값을 조회
+
+
+	컬럼 > all(값1,값2,값3...)
+   	 sal>all(800,1250,1500)
+               => 최대값보다 큰 값을 조회
+
+        3) 다중컬럼서브쿼리
+            컬럼을 여러 개 비교해서 쿼리를 조회하는 경우
+           where (컬럼1,컬럼2...) 연산자 (select 컬럼1,컬럼2 - 서브쿼리의 실행결과로
+                                                     from ...                   컬럼의 갯수가 메인쿼리에서
+                                                      ....)                        비교하려고 명시한 컬럼의 갯수와
+					           동일해야 한다.
+          [미션]                                                                
+          각 부서별로 최소급여를 받는 사람들의 사원번호, 부서번호, 급여를 출력하세요.
+
+         	select empno,deptno,sal
+	from emp
+	where ( deptno,sal) in (select deptno, min(sal)
+             		    	     from emp
+                                                group by deptno);
+
+        [과제풀이]
+        4번에서 사용된 함수
+        
+        timestampdiff
+        => 년월일시분초 주 분기 등의 날짜 차이를 계산할 수 있는 함수
+       timestampdiff(단위, 날짜1,날짜2)
+                                    ------- --------------
+                                     이른날짜   늦은날짜
+ 
+       : 날짜2 - 날짜1
+       : 단위
+         year, quarter(분기), month, week(주), day, hour, minute,second
+      
+     4) 상호연관서브쿼리
+        - 서브쿼리를 실행할때 메인쿼리 테이블의 컬럼을 참조해서 작업해야 하는 서브쿼리
+        - 서브쿼리의 비교 값이 계속 바뀌는 경우 메인쿼리의 값을 참조해서 사용
+          -------------------------------------------
+                 각각의 행에 입력된 값에 따라서 서브쿼리의 결과가 달라지는 경우
+
+        - 메인쿼리의 테이블에  alias를 정의하고 참조해서 사용
+        - 메인쿼리의 한  row에 대해서 서브쿼리가 한 번씩 실행된다.
+        - 서브쿼리에서는 메인쿼리의 컬럼을 사용할 수 있으나 메인쿼리에서는 서브쿼리의 
+           컬럼을 사용할 수 없다.
+   
+        급여가 본인 부서의 평균 급여보다 많은 사원의 사원번호, 사원명,부서번호, sal를 조회하기
+         select empno, ename, deptno, sal
+         from emp main
+         where sal> (select avg(sal)
+                          from emp e
+                          where e.deptno = main.deptno);
+         [실행흐름]
+         ① 메인쿼리에서 참조할 값을 이용해서 서브쿼리를 실행
+         ② 서브쿼리의 실행 결과를 이용해서 메인쿼리를 실행
+         ③ 1번과 2번을 레코드 갯수만큼 반복해서 실행
+
+     5) from절에 서브쿼리 
+         [구문]
+         select 컬럼1,컬럼2...
+         from (select 컬럼1,컬럼2...
+                  from 테이블
+                  where 조건1... ) 테이블에 대한 alias
+         where 조건1...
+
+         - 서브쿼리는 from절에도 사용이 가능하다.
+         - 테이블에 자료의 양이 많은 경우 from절에 테이블 전체를 사용하면 비효율적일 수 있으므로
+           필요한 행과 열을 이용해서 from절에 가상의 테이블을 만들어서 작업할 수 있다.
+         - from절에 정의한 서브쿼리는 뷰와 같은 역할을 한다.
+         - from절에 정의한 서브쿼리를 inline뷰라한다.
+         - from절에 테이블을 정의하고 사용하는 경우 테이블과 테이블안에 정의된 컬럼에는 반드시
+           alias가 정의되어 있어야 한다.
+        
+         급여가 본인 부서의 평균 급여보다 많은 사원의 사원번호, 사원명,부서번호, sal를 조회하기
+         select e.empno,e.ename,e.deptno,e.sal
+         from emp e , (select deptno, avg(sal) avgsal
+                             from emp
+                             group by deptno) avgtable
+         where e.deptno = avgtable.deptno and e.sal>avgtable.avgsal;
+
+     6) top n쿼리    
+         - 상위 n개를 추출하여 사용하고 싶은 경우
+           limit 시작숫자 , 추출할 레코드 갯수
+                  ----------
+                   0부터시작
+
+          ex) limit 3 => limit 0,3
+
+          emp테이블의 사원들 중 급여를 많이 받는 상위 3명의 이름, 급여조회
+
+        - 순위를 구하기 위해 함수를 이용할 수 있다.
+           rank() over(order by 순위를 구할 컬럼 desc)   
+           null인 값은 작은 값 보다 작은 값으로 인식
+           동일한 값이 있는 경우 공동순위가 출력되고 다음 번호는 그 중복된 순위를 뺀 숫자가 나온다.
+
+        [미션]
+         sal가 높은 순서대로  5위까지 데이터 추출하기
+         ename,sal, 순위를 출력하세요
+         단, rank() over 함수를 이용해서 작업하세요
+
+        [작성순서]
+        select -> from -> where -> group by -> having -> order by
+
+        [실행순서]
+         from -> where -> group by -> having -> select -> order by
+          
+12. DML
+     1) insert 
+         => 데이터삽입
+        
+         [구문1]
+         insert into 테이블명 values(값1,값2...)
+         => insert하기 위해서 모든 컬럼에 대해서 값을 정의해야 한다. 
+         insert into emp values('8888','지민',null,null,sysdate(),0,0,null);
+     
+        [구문2]
+         insert into 테이블명(컬럼1,컬럼2..) values(값1,값2...)
+         => 정의한 컬럼에 대해서만 값을 정의한다.
+         insert into emp(empno,ename,hiredate) values (8882,'뷔',now());
+         
+        [구문3]
+          insert into emp(컬럼1,컬럼2,컬럼3....) values
+          (값1, 값2,값3...),  (값1, 값2,값3...),  (값1, 값2,값3...)
+          => 한 번에 여러 개의 레코드를 insert하기 위해 사용된다.
+          insert into emp(empno,ename,hiredate) values
+                              (7070, '정국',now()), (8080,'진',now()),(9090,'test',now());
+
+     2) update 
+         => 데이터수정
+         [구문]
+         update 테이블명
+         set 변경할컬럼1=변경할값1
+         where 조건1 ....
+         
+          comm이 널인 데이터의 모든 comm을 0으로 수정하기
+          update emp
+          set comm = 0
+          where comm is null;
+
+         - where절에 조건을 주는 경우 select문에서 적용한 조건을 모두 사용할 수 있다.
+         - set절에는 변경할 컬럼과 값을 정의
+         - where절을 정의하지 않으면 모든 레코드의 값이 변경된다.
+         [미션]
+          mgr과 deptno가 null인 데이터는 모두  '0'으로 수정될 수 있도록 작업하기
+      	 update emp
+	 set mgr=0, deptno=0
+ 	 where mgr is null and deptno is null;
+
+    3) delete
+        => 데이터삭제
+        [구문]
+        delete from 테이블명 
+        where 조건
+        => 조건을 주지 않으면 모든 행이 삭제
+
+   
+13. 제약조건
+      [구문1 - 테이블이 작성된 후 제약조건을 추가]
+      alter table 테이블명
+      add constraint 제약조건명 제약조건(제약조건을 설정할 컬럼)
+
+
+     1) primary key제약조건
+         - not null과 unique제약조건의 내용이 모두 해당
+         - 컬럼레벨로 컬럼을 정의하면서 설정
+           create table 테이블명(
+                 컬럼 varchar(20) primary key ,
+                    ......)
+         
+        - 테이블을 생성한 후 제약조건을 정의할 수 있다. 이미 정의된 테이블의 내용을 수정하므로 alter table명령문
+          을 이용해서 작업
+           alter table 테이블명
+           add constraint 제약조건종류_테이블명_컬럼명 primary key(primary key를 적용할 컬럼명)
+       
+
+           
+    2) 외래키 제약조건
+        [테이블수정 - 제약조건추가]
+        alter table 테이블명
+        add constraint 제약조건명  foreign key(fk로 정의할 컬럼명) references 기본키테이블(기본키컬럼)
+                                                                                                           ------------------------------
+                                                                                                        외래키에서 참조해서 사용할
+                                                                                                         기본키 테이블과 컬럼
+         - references할 테이블에 기본키가 없으면 정의할 수 없다.
+         - 이미 데이터가 insert되어 있는 경우 무결성에 위배되면 제약조건을 설정할 수 없다.
+
+        ex)
+         emp테이블에 deptno에 foreign key제약조건설정하기
+        alter table emp
+        add constraint fk_emp_deptno foreign key(deptno) references dept(deptno)
+ 
+    3) not null제약조건
+        => null을 삽입할 수 없는 제약조건
+        => 테이블을 정의하면서 컬럼을 추가할때 컬럼레벨로 정의
+    4) unique제약조건
+        => 중복된 값을 허용하지 않는 제약조건
+       alter table 테이블명
+       add constraint unique(unique제약조건을 적용할 컬럼); 
+    5) check제약조건
+        => 컬럼에 insert되는 데이터의 유효성을 검증하기 위해 사용
+        => 잘못된 값이 입력되지 않도록 설정
+       
+       alter table 테이블명
+       add constraint check(컬럼 조건); 
+        
+       ex) 숫자가 저장되는 컬럼
+            => 특정 값보다 크거나 작거나 어떤 사이값을 명시해야 하므로
+                 >,>=,<,<= 등과 같은 비교연산자를 사용한다.
+             alter table emp
+             add constraint check(sal >= 800 and sal<=5000);
+
+
+       ex) 문자가 저장되는 컬럼
+           alter table order_info
+           add constraint check(컬럼 in ('값1','값2','값3'....));
+                                        -------
+                                         check제약조건을 설정할 컬럼
+
+
+     6) 제약조건의 확인
+         => 제약조건은 mysql내부에 제약조건을 저장하는 테이블에 저장된다.
+         => 제약조건이 저장되는 테이블은 mysql에서 만들어지는 모든 객체의 정보(메타데이터)가 저장되는 
+              데이터베이스(information_schema)에 있다.
+         => information_schema내부에 있는 TABLE_CONSTRAINTS에 제약조건이 저장된다.
+         => desc TABLE_CONSTRAINTS명령어를 이용해서 컬럼명을 확인한 후 작업하기
+         => information_schema은 읽기전용
+        dept테이블의 제약조건 확인하기
+        select CONSTRAINT_NAME,CONSTRAINT_TYPE from information_schema.TABLE_CONSTRAINTs where TABLE_NAME = 'dept';
+
+
+     7) 제약조건을 삭제
+         alter table 테이블명
+         drop 제약조건종류 제약조건명      
+    
+          alter table emp
+          drop check emp_chk_1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
