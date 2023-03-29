@@ -10,6 +10,8 @@ TRUNCATE: 테이블에서 모든 데이터를 삭제합니다.<br>
 RENAME: 데이터베이스 객체의 이름을 변경합니다.<br>
 COMMENT: 데이터베이스 객체에 대한 주석을 추가합니다.<br>
 
+<hr>
+
 ## CREATE
 테이블 , 데이터베이스 등 DB 객체를 생성하는 명령어
 
@@ -69,3 +71,54 @@ CREATE TABLE mytable (
    age INT
 );
 ```
+<hr>
+
+## ALTER
+
+ALTER 명령어는 테이블의 구조를 변경하는 데 사용
+
+테이블 이름 변경하기
+
+```sql
+ALTER TABLE old_table_name RENAME new_table_name;
+```
+
+테이블에 새로운 컬럼 추가하기
+
+```sql
+ALTER TABLE table_name ADD column_name data_type;
+```
+
+테이블의 컬럼 이름 변경하기
+
+```sql
+ALTER TABLE table_name CHANGE old_column_name new_column_name data_type;
+```
+
+테이블의 컬럼 삭제하기
+
+```sql
+ALTER TABLE table_name DROP column_name;
+```
+
+테이블의 컬럼 순서 변경하기
+
+```sql
+ALTER TABLE table_name MODIFY column_name data_type AFTER another_column_name;
+```
+
+
+테이블의 기본키(primary key) 설정하기
+
+```sql
+ALTER TABLE table_name ADD PRIMARY KEY (column_name);
+```
+
+테이블의 외래키(foreign key) 설정하기
+
+```sql
+ALTER TABLE table_name ADD CONSTRAINT constraint_name FOREIGN KEY (column_name) REFERENCES foreign_table_name (foreign_column_name);
+```
+
+<br>
+위와 같은 ALTER 명령어를 사용하여 테이블 구조를 변경할 수 있습니다. 이 때, 테이블이나 컬럼에 대한 변경 사항이 크다면, 데이터의 백업을 해 두는 것이 좋습니다.
